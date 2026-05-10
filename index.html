@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html class="dark" lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>날씨를 만들어드립니다</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@200;400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+      rel="stylesheet"
+    />
+    <script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "on-tertiary-container": "#503d00",
+              "on-primary-fixed-variant": "#4f378a",
+              "on-tertiary-fixed": "#241a00",
+              "on-background": "#e6e0e9",
+              "surface-container-low": "#1d1b20",
+              "surface-tint": "#cfbcff",
+              background: "#141218",
+              "surface-container": "#211f24",
+              "on-tertiary-fixed-variant": "#594400",
+              "outline-variant": "#494551",
+              "on-tertiary": "#3e2e00",
+              primary: "#cfbcff",
+              "surface-container-highest": "#36343a",
+              "surface-bright": "#3b383e",
+              "secondary-fixed-dim": "#cdc0e9",
+              "on-surface": "#e6e0e9",
+              "surface-container-lowest": "#0f0d13",
+              error: "#ffb4ab",
+              "inverse-primary": "#6750a4",
+              "primary-container": "#6750a4",
+              "on-error-container": "#ffdad6",
+              "on-secondary-fixed-variant": "#4b4263",
+              "on-secondary-fixed": "#1f1635",
+              "surface-dim": "#141218",
+              surface: "#141218",
+              "on-surface-variant": "#cbc4d2",
+              "inverse-on-surface": "#322f35",
+              "error-container": "#93000a",
+              "primary-fixed": "#e9ddff",
+              "on-secondary-container": "#bfb2da",
+              "on-primary": "#381e72",
+              tertiary: "#e7c365",
+              "tertiary-container": "#c9a74d",
+              outline: "#948e9c",
+              "secondary-container": "#4d4465",
+              "on-secondary": "#342b4b",
+              "inverse-surface": "#e6e0e9",
+              "tertiary-fixed-dim": "#e7c365",
+              "surface-variant": "#36343a",
+              "on-primary-container": "#e0d2ff",
+              secondary: "#cdc0e9",
+              "on-primary-fixed": "#22005d",
+              "on-error": "#690005",
+              "secondary-fixed": "#e9ddff",
+              "tertiary-fixed": "#ffdf93",
+              "surface-container-high": "#2b292f",
+              "primary-fixed-dim": "#cfbcff",
+            },
+            borderRadius: {
+              DEFAULT: "0.25rem",
+              lg: "0.5rem",
+              xl: "0.75rem",
+              full: "9999px",
+            },
+            spacing: {
+              "container-max": "1200px",
+              "margin-mobile": "20px",
+              "card-padding": "32px",
+              gutter: "24px",
+              unit: "8px",
+            },
+            fontFamily: {
+              "body-md": ["Hanken Grotesk"],
+              "headline-lg-mobile": ["Hanken Grotesk"],
+              "label-caps": ["Hanken Grotesk"],
+              "headline-lg": ["Hanken Grotesk"],
+              "display-weather": ["Hanken Grotesk"],
+            },
+            fontSize: {
+              "body-md": ["16px", { lineHeight: "24px", fontWeight: "400" }],
+              "headline-lg-mobile": ["28px", { lineHeight: "34px", fontWeight: "600" }],
+              "label-caps": [
+                "12px",
+                { lineHeight: "16px", letterSpacing: "0.1em", fontWeight: "700" },
+              ],
+              "headline-lg": ["32px", { lineHeight: "40px", fontWeight: "600" }],
+              "display-weather": [
+                "120px",
+                {
+                  lineHeight: "110px",
+                  letterSpacing: "-0.04em",
+                  fontWeight: "200",
+                },
+              ],
+            },
+          },
+        },
+      };
+    </script>
+    <style>
+      body {
+        background: linear-gradient(to bottom, #141218, #0f0d13);
+        background-attachment: fixed;
+        min-height: 100vh;
+      }
+      .glass-panel {
+        background: rgba(33, 31, 36, 0.4);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+      }
+      .ambient-bg {
+        background-image: radial-gradient(circle at 50% 0%, rgba(103, 80, 164, 0.35) 0%, rgba(20, 18, 24, 1) 70%);
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed;
+      }
+      .slider-track {
+        height: 4px;
+        background: rgba(207, 188, 255, 0.2);
+        border-radius: 2px;
+        position: relative;
+        margin-top: 24px;
+        margin-bottom: 24px;
+      }
+      .slider-fill {
+        position: absolute;
+        height: 100%;
+        background: #cfbcff;
+        border-radius: 2px;
+        box-shadow: 0 0 10px rgba(207, 188, 255, 0.5);
+      }
+      .slider-thumb {
+        position: absolute;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        width: 24px;
+        height: 24px;
+        background: rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(10px);
+        border-radius: 50%;
+        border: 2px solid #cfbcff;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3), 0 0 15px rgba(207, 188, 255, 0.4);
+        pointer-events: none;
+      }
+      input[type="range"].pwm-range {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 40px;
+        margin: 0;
+        opacity: 0;
+        cursor: pointer;
+        transform: translateY(-12px);
+      }
+    </style>
+    <script defer src="js/weather-app.js"></script>
+    <script defer src="js/app-ui.js"></script>
+  </head>
+  <body class="text-on-background font-body-md text-body-md antialiased pb-32 pt-24 md:pb-12 md:pt-28 ambient-bg">
+    <header
+      class="fixed top-0 left-0 right-0 z-50 w-full bg-surface/40 dark:bg-surface-container-lowest/40 backdrop-blur-xl border-b border-outline-variant/20 shadow-sm"
+    >
+      <div
+        class="mx-auto flex w-full max-w-container-max flex-col items-center justify-center gap-3 px-margin-mobile pb-4 pt-[max(1rem,env(safe-area-inset-top,0px))] md:flex-row md:gap-10"
+      >
+        <div
+          class="font-headline-lg text-headline-lg font-bold text-on-surface tracking-tight text-center shrink-0"
+        >
+          날씨를 만들어드립니다
+        </div>
+        <nav class="hidden md:flex items-center justify-center gap-2 md:gap-3 shrink-0" aria-label="섹션 이동">
+          <button
+            type="button"
+            data-nav="input"
+            class="font-label-caps text-label-caps px-3 py-2 rounded-lg hover:bg-white/10 transition-colors"
+          >
+            입력
+          </button>
+          <button
+            type="button"
+            data-nav="result"
+            class="font-label-caps text-label-caps px-3 py-2 rounded-lg hover:bg-white/10 transition-colors"
+          >
+            오늘
+          </button>
+          <button
+            type="button"
+            data-nav="archive"
+            class="font-label-caps text-label-caps px-3 py-2 rounded-lg hover:bg-white/10 transition-colors"
+          >
+            기록
+          </button>
+        </nav>
+      </div>
+    </header>
+
+    <!-- 입력 -->
+    <main
+      id="panel-input"
+      class="max-w-container-max mx-auto px-margin-mobile flex flex-col items-center gap-gutter pb-8"
+    >
+      <section class="mb-2 flex w-full max-w-2xl flex-col items-center gap-2 text-center">
+        <h1 class="font-headline-lg text-headline-lg md:text-headline-lg text-primary">오늘의 날씨 스코어</h1>
+        <p class="text-on-surface-variant">
+          어제의 만족도와 오늘 아침 기분을 1–10으로 입력하세요. (PRD v1.2)
+        </p>
+      </section>
+
+      <div class="w-full md:max-w-[800px] mx-auto glass-panel rounded-xl md:rounded-3xl p-6 md:p-card-padding shadow-[0_20px_50px_rgba(0,0,0,0.3)] relative overflow-hidden">
+        <div class="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none"></div>
+
+        <div class="mb-10 relative z-10">
+          <div class="flex justify-between items-end mb-2">
+            <label class="font-label-caps text-label-caps text-secondary">어제의 만족도</label>
+            <span id="score-y" class="font-headline-lg text-headline-lg text-primary">7</span>
+          </div>
+          <div class="relative">
+            <div class="slider-track">
+              <div id="slider-y-fill" class="slider-fill" style="width: 66.67%"></div>
+              <div id="slider-y-thumb" class="slider-thumb" style="left: 66.67%"></div>
+              <input id="range-y" class="pwm-range" type="range" min="1" max="10" value="7" />
+            </div>
+          </div>
+          <div class="flex justify-between font-label-caps text-label-caps text-on-surface-variant/50">
+            <span>1</span>
+            <span>10</span>
+          </div>
+        </div>
+
+        <div class="mb-10 relative z-10">
+          <div class="flex justify-between items-end mb-2">
+            <label class="font-label-caps text-label-caps text-secondary">오늘 아침의 기분</label>
+            <span id="score-t" class="font-headline-lg text-headline-lg text-primary">5</span>
+          </div>
+          <div class="relative">
+            <div class="slider-track">
+              <div id="slider-t-fill" class="slider-fill" style="width: 44.44%"></div>
+              <div id="slider-t-thumb" class="slider-thumb" style="left: 44.44%"></div>
+              <input id="range-t" class="pwm-range" type="range" min="1" max="10" value="5" />
+            </div>
+          </div>
+          <div class="flex justify-between font-label-caps text-label-caps text-on-surface-variant/50">
+            <span>1</span>
+            <span>10</span>
+          </div>
+        </div>
+
+        <div class="mb-10 relative z-10">
+          <label class="block font-label-caps text-label-caps text-secondary mb-3">오늘의 목표</label>
+          <div class="relative">
+            <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant"
+              >edit</span
+            >
+            <input
+              id="input-goal"
+              class="w-full bg-surface-container-highest/50 border border-outline-variant/30 rounded-xl py-4 pl-12 pr-4 text-on-surface font-body-md text-body-md focus:border-primary focus:ring-1 focus:ring-primary focus:bg-surface-container-highest/80 transition-all placeholder:text-on-surface-variant/40"
+              placeholder="어떤 하루를 만들고 싶나요?"
+              type="text"
+            />
+          </div>
+        </div>
+
+        <button id="btn-submit-weather" type="button" class="w-full relative group overflow-hidden rounded-full p-[1px] z-10">
+          <span
+            class="absolute inset-0 bg-gradient-to-r from-primary-container via-primary to-primary-container rounded-full opacity-70 group-hover:opacity-100 transition-opacity duration-300 blur-sm"
+          ></span>
+          <div
+            class="relative bg-surface-container-highest/80 backdrop-blur-md rounded-full py-4 px-8 flex items-center justify-center gap-2 border border-white/10 group-hover:bg-primary-container/20 transition-all duration-300"
+          >
+            <span class="font-headline-lg-mobile text-headline-lg-mobile text-primary-fixed-dim">날씨 생성하기</span>
+            <span class="material-symbols-outlined text-primary-fixed-dim">auto_awesome</span>
+          </div>
+        </button>
+      </div>
+    </main>
+
+    <!-- 결과 (오늘) -->
+    <main id="panel-result" class="hidden min-h-[70vh] flex flex-col relative overflow-hidden">
+      <div id="result-bg-gradient" class="absolute inset-0 z-0 bg-gradient-to-b from-violet-900/50 via-background to-background"></div>
+
+      <div class="relative z-20 w-full flex justify-between items-center px-margin-mobile py-4 max-w-container-max mx-auto md:px-card-padding">
+        <button
+          id="btn-result-back"
+          type="button"
+          class="w-12 h-12 flex items-center justify-center rounded-full bg-surface-container-lowest/40 backdrop-blur-xl border border-outline-variant/20 shadow-sm text-on-surface hover:bg-white/10 transition-colors duration-300 scale-95 active:scale-90 transition-transform"
+        >
+          <span class="material-symbols-outlined">arrow_back</span>
+        </button>
+        <h2 class="font-headline-lg text-headline-lg font-bold text-on-surface tracking-tight hidden md:block">오늘의 날씨</h2>
+        <div class="w-12"></div>
+      </div>
+
+      <div id="panel-result-empty" class="relative z-10 flex flex-col items-center justify-center flex-grow px-margin-mobile py-16 text-center">
+        <span class="material-symbols-outlined text-6xl text-on-surface-variant mb-4">wb_twilight</span>
+        <p class="text-on-surface-variant max-w-md">아직 생성된 날씨가 없습니다. 입력 탭에서 점수와 목표를 넣은 뒤 날씨를 만들어보세요.</p>
+      </div>
+
+      <div id="panel-result-content" class="hidden relative z-10 flex-grow flex flex-col items-center justify-center px-margin-mobile md:px-card-padding pb-28">
+        <div
+          class="w-full max-w-2xl bg-surface-container-lowest/30 backdrop-blur-2xl border border-white/10 rounded-[32px] p-8 md:p-12 shadow-[0_20px_60px_rgba(0,0,0,0.5)] flex flex-col items-center text-center space-y-6 relative overflow-hidden"
+        >
+          <div class="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent opacity-50 pointer-events-none"></div>
+          <div class="relative w-24 h-24 mb-2 flex items-center justify-center">
+            <div class="absolute inset-0 bg-primary/20 blur-xl rounded-full"></div>
+            <span id="result-icon" class="material-symbols-outlined text-[80px] text-primary relative z-10">wb_sunny</span>
+          </div>
+          <blockquote id="result-quote" class="font-headline-lg text-headline-lg-mobile md:text-headline-lg text-on-surface leading-snug tracking-tight"></blockquote>
+          <p id="result-author" class="font-body-md text-body-md text-on-surface-variant"></p>
+          <div class="font-body-md text-body-md text-on-surface-variant flex items-center space-x-2 pt-2">
+            <span class="w-8 h-[1px] bg-outline-variant/50"></span>
+            <span>오늘의 생성된 날씨</span>
+            <span class="w-8 h-[1px] bg-outline-variant/50"></span>
+          </div>
+          <div class="flex flex-wrap justify-center gap-3 pt-2">
+            <div class="bg-surface-container-high/50 backdrop-blur-md border border-outline-variant/20 rounded-full px-4 py-2">
+              <span id="chip-yesterday" class="font-label-caps text-label-caps text-on-surface"></span>
+            </div>
+            <div class="bg-surface-container-high/50 backdrop-blur-md border border-outline-variant/20 rounded-full px-4 py-2">
+              <span id="chip-today" class="font-label-caps text-label-caps text-on-surface"></span>
+            </div>
+            <div class="bg-surface-container-high/50 backdrop-blur-md border border-outline-variant/20 rounded-full px-4 py-2">
+              <span id="chip-weather" class="font-label-caps text-label-caps text-primary"></span>
+            </div>
+          </div>
+          <p id="result-goal-foot" class="text-on-surface-variant text-sm pt-4 border-t border-outline-variant/20 w-full"></p>
+        </div>
+      </div>
+
+      <div id="result-actions" class="relative z-20 w-full px-margin-mobile pb-8 pt-4 flex justify-center hidden">
+        <button
+          id="btn-save-log"
+          type="button"
+          class="bg-primary text-on-primary font-body-md text-body-md font-semibold rounded-full px-8 py-4 shadow-[0_10px_30px_rgba(207,188,255,0.25)] hover:shadow-[0_15px_40px_rgba(207,188,255,0.4)] hover:-translate-y-1 transition-all duration-300 flex items-center space-x-2"
+        >
+          <span id="btn-save-log-label">나의 기록에 저장하기</span>
+          <span class="material-symbols-outlined text-[20px]">bookmark_add</span>
+        </button>
+      </div>
+    </main>
+
+    <!-- 기록 -->
+    <main
+      id="panel-archive"
+      class="hidden max-w-container-max mx-auto px-margin-mobile flex flex-col items-center gap-gutter pb-32 md:pb-12"
+    >
+      <section class="mb-4 flex w-full max-w-2xl flex-col items-center gap-2 text-center">
+        <h1 class="font-headline-lg text-headline-lg md:text-headline-lg text-primary">나의 날씨 기록</h1>
+        <p class="text-on-surface-variant">지난 날들의 감정과 명언을 돌아보세요. (브라우저에 저장)</p>
+      </section>
+      <p
+        id="archive-empty"
+        class="hidden w-full max-w-container-max text-on-surface-variant glass-panel rounded-xl p-8 text-center"
+      >
+        아직 저장된 기록이 없습니다. 오늘 탭에서 결과를 저장해 보세요.
+      </p>
+      <section
+        id="archive-grid"
+        class="grid w-full max-w-container-max grid-cols-1 gap-unit md:grid-cols-2 lg:grid-cols-3"
+      ></section>
+    </main>
+
+    <nav
+      class="pwm-bottom-nav fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-6 pt-3 md:max-w-[1200px] md:left-1/2 md:-translate-x-1/2 bg-surface-container/60 dark:bg-surface-container-lowest/60 backdrop-blur-2xl border-t border-outline-variant/10 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] rounded-t-xl md:hidden"
+    >
+      <button type="button" data-nav="input" class="flex flex-col items-center justify-center font-label-caps text-label-caps transition-all py-2">
+        <span class="material-symbols-outlined mb-1">edit_note</span>
+        <span>입력</span>
+      </button>
+      <button type="button" data-nav="result" class="flex flex-col items-center justify-center font-label-caps text-label-caps transition-all py-2">
+        <span class="material-symbols-outlined mb-1">wb_sunny</span>
+        <span>오늘</span>
+      </button>
+      <button type="button" data-nav="archive" class="flex flex-col items-center justify-center font-label-caps text-label-caps transition-all py-2">
+        <span class="material-symbols-outlined mb-1">calendar_month</span>
+        <span>기록</span>
+      </button>
+    </nav>
+  </body>
+</html>
